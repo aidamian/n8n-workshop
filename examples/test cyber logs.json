@@ -1,0 +1,112 @@
+{
+  "name": "Test cyber logs",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        -224
+      ],
+      "id": "47c3ee48-5546-46ab-9305-89b5faa27324",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You purpose is to generate synthetic data for training complex domain-oriented cybersecurity systems.\nGenerate 4 \"observations\" of system log and/or kernel log and or other similar logs that are ingested by SIEM systems in general.\nEach observation should have the log/text content and a label (Neutral, Suspect, Critical). Generate the data in json format.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -176,
+        -224
+      ],
+      "id": "a887c0b0-135c-4b98-8fb5-d9984482f6c0",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        16
+      ],
+      "id": "1c6b2e5a-859b-4fc5-86e3-f61ceba0d554",
+      "name": "DeepSeek Chat Model",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "LzFWkmapC2LGxHO9",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"title\": \"Log Entry Array Schema\",\n  \"description\": \"Schema for validating an array of log entries with labels for n8n output formatter\",\n  \"type\": \"array\",\n  \"minItems\": 1,\n  \"items\": {\n    \"type\": \"object\",\n    \"title\": \"Log Entry\",\n    \"description\": \"A single log entry with message and classification label\",\n    \"properties\": {\n      \"log\": {\n        \"type\": \"string\",\n        \"title\": \"Log Message\",\n        \"description\": \"The actual log line content\",\n        \"minLength\": 1,\n        \"maxLength\": 10000\n      },\n      \"label\": {\n        \"type\": \"string\",\n        \"title\": \"Classification Label\",\n        \"description\": \"The classification category for the log entry\",\n        \"enum\": [\n          \"neutral\",\n          \"suspect\",\n          \"critical\"\n        ],\n        \"default\": \"neutral\"\n      }\n    },\n    \"required\": [\n      \"log\",\n      \"label\"\n    ],\n    \"additionalProperties\": false\n  }\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        -64
+      ],
+      "id": "a268bb36-8d1d-48eb-81b6-bd7979ab9206",
+      "name": "Structured Output Parser"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a852288b-5871-49a0-8b32-edd2dcc3fb39",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7ea578d5978efdb5d39f48c0de3fb7c4064819f2dab1fd56931d3f46487d780f"
+  },
+  "id": "Sn3MntBUM5IdPukR",
+  "tags": []
+}

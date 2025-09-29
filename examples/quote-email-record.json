@@ -1,0 +1,290 @@
+{
+  "name": "Quote emailer",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1184,
+        -160
+      ],
+      "id": "d067cb62-7a80-4bf0-87eb-62b96d235913",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Send a daily quote to a random receiver",
+        "options": {
+          "systemMessage": "You are a helpful assistant.\n1. use HTTP tool to fetch a random quote\n2. use Google Sheets tool to get a random [Email] from the mailing list and the previous [Emails count]\n3. increment  [Emails count] then use Gmail tool to send the the quote to the given email with the subject \"Daily quote [Email Count]\" using the updated [Email Count]\n4. use google sheet tool to increment the [Emails Count] for the corresponding Email row that received the quote"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -928,
+        -160
+      ],
+      "id": "fdca0eda-55ff-418f-aa57-94c0a3ad995d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        -1072,
+        48
+      ],
+      "id": "b434162a-b3c4-4459-b5ec-78a84b59d84d",
+      "name": "DeepSeek Chat Model",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "LzFWkmapC2LGxHO9",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "11wTg-GKJ2c8ymNBeGtLyH8eCvsdyBfmorLU55OjYzXw",
+          "mode": "list",
+          "cachedResultName": "n8n-emails-test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11wTg-GKJ2c8ymNBeGtLyH8eCvsdyBfmorLU55OjYzXw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11wTg-GKJ2c8ymNBeGtLyH8eCvsdyBfmorLU55OjYzXw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -512,
+        32
+      ],
+      "id": "53ba4637-d8c5-44e8-b8d3-84eeaf9bb9dc",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "3Qu0O0OrhikH4YpR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://zenquotes.io/api/random",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -672,
+        32
+      ],
+      "id": "82be3c28-133a-4de4-9fae-2580cc323b15",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        -336,
+        32
+      ],
+      "id": "b8d73ab1-b12c-4140-b5ee-c8ece34b8a49",
+      "name": "Send a message in Gmail",
+      "webhookId": "4ea819e5-98cd-41ae-9516-11219eada764",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "E2HG0v6Njq60njRk",
+          "name": "Google Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "11wTg-GKJ2c8ymNBeGtLyH8eCvsdyBfmorLU55OjYzXw",
+          "mode": "list",
+          "cachedResultName": "n8n-emails-test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11wTg-GKJ2c8ymNBeGtLyH8eCvsdyBfmorLU55OjYzXw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11wTg-GKJ2c8ymNBeGtLyH8eCvsdyBfmorLU55OjYzXw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Email__using_to_match_', ``, 'string') }}",
+            "Emails Count": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Emails_Count', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Emails Count",
+              "displayName": "Emails Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -144,
+        32
+      ],
+      "id": "7eb547ad-fb7f-41e7-b05b-efa91e9fbc1c",
+      "name": "Append or update row in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "3Qu0O0OrhikH4YpR",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cea241ec-0dd5-42c3-8b1d-de75f81da3d0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7ea578d5978efdb5d39f48c0de3fb7c4064819f2dab1fd56931d3f46487d780f"
+  },
+  "id": "zGkC3sViqul4rs5b",
+  "tags": []
+}
