@@ -1,0 +1,234 @@
+{
+  "name": "Email pdf analysis with Poppler",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "from: andrei@smartclover.ro"
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2320,
+        -832
+      ],
+      "id": "c76e0339-6cc4-4325-9684-864caa130009",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "E2HG0v6Njq60njRk",
+          "name": "Google Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/user_data/{{ $('Gmail Trigger').item.binary.attachment_0.fileName }}",
+        "dataPropertyName": "attachment_0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -2064,
+        -832
+      ],
+      "id": "bda77fb9-8178-430b-b5c4-4db21dbc75a9",
+      "name": "Read/Write Files from Disk",
+      "retryOnFail": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "command": "=pdftotext {{ $json.fileName }} -"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -1520,
+        -880
+      ],
+      "id": "7fcc7b6e-a327-47aa-8b15-4b3fce364668",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "attachment_0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -1696,
+        -496
+      ],
+      "id": "52340875-fcaf-446e-8c97-ad8c22219d49",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Identify and extract the fields in the provided text in JSON format:\n- Cont\n- Denumirea contului\n- Solduri initiale an - debitoare\n- Solduri initiale an - creditoare\n- Sume precendente - debitoare\n- Sume precendente - creditoare\n- Rulaje perioada - debitoare\n- Rulaje perioada - creditoare\n- Sume totale - debitoare\n- Sume totale - creditoare\n- Solduri finale - debitoare\n- Solduri finale - creditoare\n\nOutput in JSON format. Output only the resulting JSON\nUse the following data as input:\n---\n{{ $json.stdout }}\n---",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -1152,
+        -864
+      ],
+      "id": "ed2c1547-6a5e-4a35-9f03-9ef9c17e60aa",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        -672
+      ],
+      "id": "815ce9ca-fae8-49a0-9b48-d9ed9ea18d82",
+      "name": "DeepSeek Chat Model",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "LzFWkmapC2LGxHO9",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"$id\": \"https://example.com/accounting-balance-schema.json\",\n  \"title\": \"Accounting Balance Report\",\n  \"description\": \"Schema for Romanian accounting balance report with account details and financial amounts\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"accounts\": {\n      \"type\": \"array\",\n      \"description\": \"Array of accounting records\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"Cont\": {\n            \"type\": \"string\",\n            \"description\": \"Account code\",\n            \"pattern\": \"^[0-9]+$\"\n          },\n          \"Denumirea contului\": {\n            \"type\": \"string\",\n            \"description\": \"Account name/description\"\n          },\n          \"Solduri initiale an - debitoare\": {\n            \"type\": \"string\",\n            \"description\": \"Initial year balance - debit\",\n            \"pattern\": \"^[0-9]+\\\\.[0-9]{2}$\"\n          },\n          \"Solduri initiale an - creditoare\": {\n            \"type\": \"string\",\n            \"description\": \"Initial year balance - credit\",\n            \"pattern\": \"^[0-9]+\\\\.[0-9]{2}$\"\n          },\n          \"Sume precendente - debitoare\": {\n            \"type\": \"string\",\n            \"description\": \"Previous amounts - debit\",\n            \"pattern\": \"^[0-9]+\\\\.[0-9]{2}$\"\n          },\n          \"Sume precendente - creditoare\": {\n            \"type\": \"string\",\n            \"description\": \"Previous amounts - credit\",\n            \"pattern\": \"^[0-9]+\\\\.[0-9]{2}$\"\n          },\n          \"Rulaje perioada - debitoare\": {\n            \"type\": \"string\",\n            \"description\": \"Period turnover - debit\",\n            \"pattern\": \"^[0-9]+\\\\.[0-9]{2}$\"\n          },\n          \"Rulaje perioada - creditoare\": {\n            \"type\": \"string\",\n            \"description\": \"Period turnover - credit\",\n            \"pattern\": \"^[0-9]+\\\\.[0-9]{2}$\"\n          },\n          \"Sume totale - debitoare\": {\n            \"type\": \"string\",\n            \"description\": \"Total amounts - debit\",\n            \"pattern\": \"^[0-9]+\\\\.[0-9]{2}$\"\n          },\n          \"Sume totale - creditoare\": {\n            \"type\": \"string\",\n            \"description\": \"Total amounts - credit\",\n            \"pattern\": \"^[0-9]+\\\\.[0-9]{2}$\"\n          },\n          \"Solduri finale - debitoare\": {\n            \"type\": \"string\",\n            \"description\": \"Final balance - debit\",\n            \"pattern\": \"^[0-9]+\\\\.[0-9]{2}$\"\n          },\n          \"Solduri finale - creditoare\": {\n            \"type\": \"string\",\n            \"description\": \"Final balance - credit\",\n            \"pattern\": \"^[0-9]+\\\\.[0-9]{2}$\"\n          }\n        },\n        \"required\": [\n          \"Cont\",\n          \"Denumirea contului\",\n          \"Solduri initiale an - debitoare\",\n          \"Solduri initiale an - creditoare\",\n          \"Sume precendente - debitoare\",\n          \"Sume precendente - creditoare\",\n          \"Rulaje perioada - debitoare\",\n          \"Rulaje perioada - creditoare\",\n          \"Sume totale - debitoare\",\n          \"Sume totale - creditoare\",\n          \"Solduri finale - debitoare\",\n          \"Solduri finale - creditoare\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": [\"accounts\"],\n  \"additionalProperties\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -896,
+        -656
+      ],
+      "id": "f8c47b7e-0246-4275-a4d6-5a20c04f1f04",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -1760,
+        -304
+      ],
+      "id": "c71acd9e-480c-4d7c-a89c-377b3c015650",
+      "name": "Stop and Error"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        []
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        []
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6a1e15e9-ac3c-4452-bcca-bfde011d9f40",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7ea578d5978efdb5d39f48c0de3fb7c4064819f2dab1fd56931d3f46487d780f"
+  },
+  "id": "XJrKZo4QSrffQzfT",
+  "tags": []
+}
